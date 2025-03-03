@@ -1,0 +1,23 @@
+[project]
+name = "swift-orm"
+version = "0.1.0"
+description = "a swift python orm focus on performance and simplicity for my TCC at Fatec."
+authors = [
+    {name = "joao pedro",email = "joaopedrog0667@gmail.com"}
+]
+readme = "README.md"
+requires-python = ">=3.11"
+dependencies = [
+    "pandas (>=2.2.3,<3.0.0)",
+    "pydantic (>=2.10.6,<3.0.0)"
+]
+
+
+[build-system]
+requires = ["poetry-core>=2.0.0,<3.0.0"]
+build-backend = "poetry.core.masonry.api"
+
+[tool.poetry.group.dev.dependencies] 
+sqlalchemy = "^2.0.38"
+matplotlib = "^3.10.1"
+

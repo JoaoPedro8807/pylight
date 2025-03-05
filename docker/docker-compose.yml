@@ -1,0 +1,10 @@
+version: '3'
+
+services:
+  orm:
+    build: .  # Usa o Dockerfile na raiz do projeto para construir a imagem
+    volumes:
+      - ../swifit-orm:/swifit-orm  # Mapeia o diretório local para o contêiner
+    ports:
+      - "5432:5432"  # Expõe a porta 5432 (opcional, se necessário)
+    command: python3  # Comando padrão (pode ser substituído por um script específico)s

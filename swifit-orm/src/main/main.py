@@ -1,7 +1,9 @@
-from backends.database_backend import DatabaseBackend
+from backend import DatabaseBackend
 from typing import Literal, TypedDict
-from backends import SqliteBackend, MySQLBackend, PostgreSQLBackend 
+from backend import SqliteBackend, MySQLBackend, PostgreSQLBackend 
 from exceptions import SwifitORMException
+from model import Model
+from os import Path
 
 class SwifitORM:
     __Backends = Literal["sqlite", "mysql", "postgres"]
@@ -21,11 +23,13 @@ class SwifitORM:
     def __init__(
             self, 
             backend: DatabaseBackend | __Backends,  
-            host: str,
-            port: int,
-            database: str,
-            user: str,
-            password: str):
+            host: str = None,
+            port: int = None,
+            database: str = None,
+            user: str = None,
+            password: str = None,
+            db_file: str | Path = None # only for sqlite
+            ):
         try:
             if isinstance(backend, DatabaseBackend):
                 self.__backend = backend
@@ -41,7 +45,8 @@ class SwifitORM:
                 "port": port,
                 "database": database,
                 "user": user,
-                "password": password
+                "password": password,
+                "database_file": db_file
             }
         )
 
@@ -49,7 +54,7 @@ class SwifitORM:
         kwargs.update(connection_params)
         return self.backend.connect(**kwargs)
 
-    def execute_query(self, query: str, params=None) -> None:
+    def execute_query(self, query: str, params=None) -> None:                                                   
         return self.backend.execute_query(query, params)
 
     def fetch_all(self) -> None:
@@ -57,6 +62,9 @@ class SwifitORM:
 
     def close(self) -> None:
         return self.backend.close() 
+    
+    def create_table(self, model: Model) -> None:
+        return self.backend.create_table(model)
     
 
     def __exit__(self) -> None:

@@ -3,6 +3,7 @@ from typing import TypedDict, TYPE_CHECKING
 
 
 class DatabaseBackend(ABC):
+    
     @abstractmethod
     def connect(self, **kwargs):
         pass

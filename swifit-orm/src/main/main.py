@@ -1,12 +1,12 @@
 from backend import DatabaseBackend
 from typing import Literal, TypedDict
 from backend import SqliteBackend, MySQLBackend, PostgreSQLBackend 
-from exceptions import SwifitORMException
-from model import Model
-from os import Path
+from .exceptions import SwifitORMException
+from .model import Model
+from pathlib import Path
 
 class SwifitORM:
-    __Backends = Literal["sqlite", "mysql", "postgres"]
+    Backends = Literal["sqlite", "mysql", "postgres"]
     __backend: DatabaseBackend
     __backend_instances ={
         "sqlite": SqliteBackend(),
@@ -22,7 +22,7 @@ class SwifitORM:
 
     def __init__(
             self, 
-            backend: DatabaseBackend | __Backends,  
+            backend: DatabaseBackend | Backends,  
             host: str = None,
             port: int = None,
             database: str = None,

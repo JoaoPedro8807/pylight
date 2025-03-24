@@ -1,8 +1,20 @@
 from ..database_backend import DatabaseBackend
 from compilers import SQLCompiler
 from main.model.base.model_base import Model
+from typing import TYPE_CHECKING, Dict, Any
+from main.model.fields import FieldType
 
 class PostgreSQLBackend(DatabaseBackend):
+
+    SQL_TYPE_MAPPING: Dict[FieldType, Any] = {
+            "CharField": lambda length: f"VARCHAR({length})",
+            "IntegerField": "INTEGER",
+            "BooleanField": "BOOLEAN",
+            "FloatField": "REAL",
+            "DateField": "DATE",
+    }
+
+
     def __init__(self):
         self.connection = None
         self.cursor = None
@@ -39,7 +51,17 @@ class PostgreSQLBackend(DatabaseBackend):
         sql = self._compiler.create_table_sql(model)
         self.execute_query(sql)
         
-        ...
+    def get_sql_type(self, field_type: FieldType, length: int = 255, **kwargs) -> str:
+        sql_type = self.SQL_TYPE_MAPPING[field_type]
+        if callable(sql_type):
+            return sql_type(length)
+        return sql_type or "TEXT"
+
+    def get_supported_date_format(self) -> str:
+        """
+        Retorna o formato de data suportado pelo PostgreSQL.
+        """
+        return "%Y-%m-%d"  # Formato ISO 8601
 
     def __exit__(self):
         self.close()

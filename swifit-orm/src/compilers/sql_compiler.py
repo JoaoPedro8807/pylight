@@ -1,4 +1,10 @@
-from querys import InsertQuery, UpdateQuery
+from typing import TYPE_CHECKING
+from main.model import Model
+
+if TYPE_CHECKING:
+    from querys import InsertQuery, UpdateQuery
+    from backend import DatabaseBackend, SqliteBackend
+
 
 class SQLCompiler:
     def as_sql(self):
@@ -22,7 +28,18 @@ class SQLCompiler:
         params = list(values) + list(filters.values())
         return sql, params
     
-    def create_table_sql(self, model) -> str:
-        fields = model.fields
-        sql = f"CREATE TABLE IF NOT EXISTS {model._meta.db_table} ({', '.join([f'{field} {field_type}' for field, field_type in fields.items()])});"
+    def create_table_sql(self, backend: "DatabaseBackend", model: Model, **kwargs) -> str:
+        fields = model._fields.items()
+
+
+        print("fields", fields) 
+
+        sql = f"CREATE TABLE IF NOT EXISTS {model._meta.get('db_table')} ({', '.join(
+            [f'{field_name} {field_object.get_sql_type(backend, length=field_object._LENGTH)} {field_object.get_create_params(backend=backend)}' for field_name, field_object in fields ])});"
+        print("SQL CREATE TABLE: ", sql)
         return sql
+
+    def get_field_params(self, model: Model) -> str:
+        fields = model._fields
+
+        

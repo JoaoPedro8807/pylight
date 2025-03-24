@@ -1,5 +1,5 @@
 from abc import ABC, abstractmethod
-from typing import TypedDict, TYPE_CHECKING
+
 
 
 class DatabaseBackend(ABC):
@@ -22,7 +22,13 @@ class DatabaseBackend(ABC):
 
     @abstractmethod
     def get_default_conection_params() -> dict:
+        pass    
+    @abstractmethod
+    def get_sql_type(self, field_type: str, **kwargs) -> str:
         pass
-        
+    @abstractmethod    
+    def get_supported_date_format(self) -> str:
+        pass
+
     def __exit__(self):
         self.close()

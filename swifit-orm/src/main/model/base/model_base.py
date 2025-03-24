@@ -1,4 +1,4 @@
-from fields import Field
+from ..fields import Field
 from typing import Dict
 
 class ModelBase(type):
@@ -78,5 +78,8 @@ class Model(metaclass=ModelBase):
     def fields(self) -> Dict[str, Field]:
         return self._fields
 
-    pass
-
+    def __str__(self):
+        return f"{self.__class__.__name__}"
+    
+    def __repr__(self):
+        return f"<{self.__class__.__name__}>"

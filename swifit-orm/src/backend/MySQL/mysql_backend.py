@@ -1,7 +1,23 @@
 from ..database_backend import DatabaseBackend
-from typing import Dict, Any
+from typing import Dict, Any, TYPE_CHECKING
+from main.model.fields import FieldType
+
+
+
 
 class MySQLBackend(DatabaseBackend):
+
+
+    SQL_TYPE_MAPPING: Dict[FieldType, Any] = {
+        "CharField": lambda length: f"VARCHAR({length})",
+        "IntegerField": "INT",
+        "BooleanField": "TINYINT(1)",
+        "FloatField": "FLOAT",
+        "DateField": "DATE",
+    }
+
+
+
     def __init__(self):
         self.connection = None
         self.cursor = None
@@ -32,6 +48,19 @@ class MySQLBackend(DatabaseBackend):
             "user": "root",
             "password": "root",
         }
+    
+    def get_sql_type(self, field_type: FieldType, **kwargs) -> str:
+        sql_type = self.SQL_TYPE_MAPPING[field_type]
+        if callable(sql_type):
+            return sql_type(**kwargs)
+        return sql_type
+
+    
+    def get_supported_date_format(self) -> str:
+        """
+        Retorna o formato de data suportado pelo MySQL.
+        """
+        return "%Y-%m-%d"  # Formato ISO 8601
 
     def __exit__(self):
         self.close()        

@@ -22,5 +22,5 @@ class Session:
     def __enter__(self):
         return self
     
-    def __exit__(self):
+    def __exit__(self, type, value, traceback):
         self._engine.close()

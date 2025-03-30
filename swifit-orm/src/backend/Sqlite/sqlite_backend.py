@@ -7,6 +7,8 @@ from main.model.fields import FieldType
 
 if TYPE_CHECKING:
     from main.model.fields import FieldType
+    from main.model.base.model_base import Model
+
 
 class SqliteBackend(DatabaseBackend):
 
@@ -15,6 +17,7 @@ class SqliteBackend(DatabaseBackend):
 
     SQL_TYPE_MAPPING: Dict[FieldType, str] = {
     "CharField": "TEXT",
+    "IDField": "INTEGER",
     "IntegerField": "INTEGER",
     "BooleanField": "INTEGER",  # SQLite não tem tipo booleano nativo
     "DateField": "TEXT",
@@ -33,6 +36,7 @@ class SqliteBackend(DatabaseBackend):
         self.cursor = self.connection.cursor()
 
     def execute_query(self, query: str, params=None):
+        print("executando query:", query, params)
         try:
             self.cursor.execute(query, params or ())
         except Exception as e:
@@ -51,7 +55,7 @@ class SqliteBackend(DatabaseBackend):
             "database": ":memory:"
         }
     
-    def create_table(self, model):
+    def create_table(self, model: "Model"):
         print("criando tabela", model)
         sql = self._compiler.create_table_sql(backend=self, model=model)
         self.execute_query(sql)
@@ -64,6 +68,14 @@ class SqliteBackend(DatabaseBackend):
         Retorna o formato de data suportado pelo SQLite.
         """
         return "%Y-%m-%d"  # Formato ISO 8601
+
+    def add(self, model, **kwargs):
+        sql, params = self._compiler.insert_sql(backend=self, model=model, **kwargs)
+        self.execute_query(sql, params)
+
+    def commit(self) -> None:
+        if self.connection:
+            self.connection.commit()
 
     @property
     def db_file(self) -> str | Path:

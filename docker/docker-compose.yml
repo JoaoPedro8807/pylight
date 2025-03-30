@@ -1,10 +1,29 @@
-version: '3'
 
 services:
-  orm:
-    build: .  # Usa o Dockerfile na raiz do projeto para construir a imagem
+
+  psql:
+    image: postgres:latest
+    container_name: psql-container
+    env_file:
+      - .env
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-dbteste}
+      POSTGRES_USER: ${POSTGRES_USER:-postgres}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
     volumes:
-      - ../swifit-orm:/swifit-orm  # Mapeia o diretório local para o contêiner
+      - ./postgresql/postgres_data:/var/lib/postgresql/data
+      - ./postgresql/init.sql:/docker-entrypoint-initdb.d/init.sql
     ports:
-      - "5432:5432"  # Expõe a porta 5432 (opcional, se necessário)
-    command: python3  # Comando padrão (pode ser substituído por um script específico)s
+      - "5432:5432"
+    restart: unless-stopped
+  pgadmin:
+      image: dpage/pgadmin4:latest
+      container_name: pgadmin-container
+      environment:
+        PGADMIN_DEFAULT_EMAIL: ${PGADMIN_DEFAULT_EMAIL:-admin@admin.com}
+        PGADMIN_DEFAULT_PASSWORD: ${PGADMIN_DEFAULT_PASSWORD:-admin}
+      ports:
+        - "5050:80"
+      restart: unless-stopped    
+    
+    

@@ -22,4 +22,5 @@ build-backend = "poetry.core.masonry.api"
 [tool.poetry.group.dev.dependencies] 
 sqlalchemy = "^2.0.38"
 matplotlib = "^3.10.1"
+python-dotenv = "^1.1.0"
 

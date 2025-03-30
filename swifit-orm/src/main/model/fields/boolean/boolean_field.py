@@ -20,18 +20,13 @@ class BooleanField(FieldAbstract, Field):
         self._name = name
         self._model = owner
 
+    def validate_value(self, value: str) -> bool:
+        if isinstance(value, bool):
+            return True  #verificar se vale o mesmo para sqlite
+        raise ValueError(f"Invalid value for field '{self._name}'. Expected a boolean.")
+
     def get_sql_type(self, backend: "DatabaseBackend", **kwargs) -> str:
         return backend.get_sql_type("BooleanField", **kwargs)
 
-    def get_create_params(self, **kwargs) -> str:
-        string_params = ""
-        if self._PK:
-            string_params += " PRIMARY KEY"
-        if self._NOT_NULL:
-            string_params += " NOT NULL"
-        if self._UNIQUE:
-            string_params += " UNIQUE"
-        if self._DEFAULT:
-            string_params += f" DEFAULT {int(bool(self._DEFAULT))}"
-            
-        return string_params
+    def get_create_params(self, backend: "DatabaseBackend", **kwargs) -> str:
+        return backend.get_create_params_for_bool_field(field=self)

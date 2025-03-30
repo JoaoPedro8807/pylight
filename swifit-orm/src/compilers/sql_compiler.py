@@ -1,9 +1,10 @@
-from typing import TYPE_CHECKING
-from main.model import Model
+from typing import TYPE_CHECKING, Tuple
 
 if TYPE_CHECKING:
     from querys import InsertQuery, UpdateQuery
     from backend import DatabaseBackend, SqliteBackend
+    from main.model import Model
+
 
 
 class SQLCompiler:
@@ -28,18 +29,21 @@ class SQLCompiler:
         params = list(values) + list(filters.values())
         return sql, params
     
-    def create_table_sql(self, backend: "DatabaseBackend", model: Model, **kwargs) -> str:
+    def create_table_sql(self, backend: "DatabaseBackend", model: "Model", **kwargs) -> str:
         fields = model._fields.items()
-
-
         print("fields", fields) 
 
         sql = f"CREATE TABLE IF NOT EXISTS {model._meta.get('db_table')} ({', '.join(
             [f'{field_name} {field_object.get_sql_type(backend, length=field_object._LENGTH)} {field_object.get_create_params(backend=backend)}' for field_name, field_object in fields ])});"
         print("SQL CREATE TABLE: ", sql)
         return sql
+    
+    def insert_sql(self, backend: "DatabaseBackend", model: "Model", **kwargs) -> Tuple[str, list]:
+        sql = f"INSERT INTO {model._meta.get('db_table')} ({', '.join(kwargs.keys())}) VALUES ({', '.join(['%s'] * len(kwargs))});"
+        params = list(kwargs.values())
+        return sql, params
 
-    def get_field_params(self, model: Model) -> str:
+    def get_field_params(self, model: "Model") -> str:
         fields = model._fields
 
         

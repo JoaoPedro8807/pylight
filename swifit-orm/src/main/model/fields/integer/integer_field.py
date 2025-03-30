@@ -24,6 +24,11 @@ class IntegerField(FieldAbstract, Field):
         self._name = name
         self._model = owner
 
+    def validate_value(self, value: str) -> bool:
+        if isinstance(value, int):
+            return True
+        raise ValueError(f"Invalid value for field '{self._name}'. Expected an integer.")
+
     def get_sql_type(self, backend: "DatabaseBackend", **kwargs) -> str:
         return backend.get_sql_type("IntegerField", kwargs=kwargs)
 

@@ -56,6 +56,9 @@ class SwifitORM:
 
     def execute_query(self, query: str, params=None) -> None:                                                   
         return self.backend.execute_query(query, params)
+    
+    def commit(self) -> None:
+        return self.backend.commit()
 
     def fetch_all(self) -> None:
         return self.backend.fetch_all()
@@ -66,6 +69,10 @@ class SwifitORM:
     def create_table(self, model: Model) -> None:
         return self.backend.create_table(model)
     
+
+    def insert(self, model: Model, **kwargs) -> None:
+        sql = self.backend._compiler.insert_sql(backend=self, model=model, **kwargs)
+        self.execute_query(sql)
 
     def __exit__(self) -> None:
         self.backend.__exit__()

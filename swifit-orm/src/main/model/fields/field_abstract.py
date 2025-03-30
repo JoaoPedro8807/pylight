@@ -12,6 +12,10 @@ class FieldAbstract(ABC):
         pass
 
     @abstractmethod
+    def validate_value(self, value: str) -> bool:
+        pass
+
+    @abstractmethod
     def get_create_params(self, **kwargs) -> str:
         pass
 

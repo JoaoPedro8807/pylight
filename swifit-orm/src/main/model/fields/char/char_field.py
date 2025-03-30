@@ -33,6 +33,11 @@ class CharField(FieldAbstract, Field):
     def get_sql_type(self, backend: "DatabaseBackend", **kwargs) -> str:
         return backend.get_sql_type("CharField", length=self._LENGTH)
     
+    def validate_value(self, value):
+        if len(value) > self._LENGTH:
+            raise ValueError(f"O campo {self._name} excede o tamanho permitido de {self._LENGTH} caracteres.")
+        return True
+    
     def get_create_params(self, **kwargs) -> str:
         string_params = ""
         if self._PK:

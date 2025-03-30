@@ -7,7 +7,10 @@ FieldType = Literal[
     "IntegerField", 
     "DateField", 
     "BooleanField", 
-    "FloatField"
+    "FloatField",
+    "TimeField",
+    "IDField",
+
     ]   
 
 
@@ -22,9 +25,10 @@ class Field:
     _UNIQUE: bool
     _DEFAULT: str
     _OPTIONS: dict
+    _AUTO_INCREMENT: bool
 
 
-    def __init__(self, type: FieldType, length: int = 255, primary_key: bool = False, not_null: bool = False, unique: bool = False, default: str = None, **kwargs):
+    def __init__(self, type: FieldType, length: int = 255, primary_key: bool = False, not_null: bool = False, unique: bool = False, default: str = None, auto_increment: bool = False, **kwargs):
         self._TYPE = type
         self._LENGTH = length
         self._PK = primary_key
@@ -32,6 +36,8 @@ class Field:
         self._UNIQUE = unique
         self._DEFAULT = default or None
         self._OPTIONS = kwargs
+    
+
 
 
 

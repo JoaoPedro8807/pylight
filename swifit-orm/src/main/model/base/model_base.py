@@ -114,11 +114,10 @@ class Model(metaclass=ModelBase):
         """
         Cria um novo objeto no banco de dados com base nos campos definidos no modelo.
         """
+        cls.validate_all(**kwargs)
 
         backend = session.engine.backend
         backend.add(cls, **kwargs)
-
-        cls.validate_all(**kwargs)
 
         # Retorna uma instância do modelo
         instance = cls(session=session, **kwargs)

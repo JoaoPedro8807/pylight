@@ -16,7 +16,7 @@ class TimeField(FieldAbstract, Field):
         super().__init__(type=self._TYPE, primary_key=primary_key, not_null=not_null, default=default)
      
 
-    def validate_value(self, value: str) -> bool:
+    def validate_value(self, value: str, **kwargs) -> bool:
         try:
             datetime.strptime(value, "%H:%M:%S")
             return True
@@ -36,11 +36,6 @@ class TimeField(FieldAbstract, Field):
         Retorna o tipo SQL correspondente com base no backend.
         """
         return backend.get_sql_type("TimeField", **kwargs)
-
-        
-
-    def validate_value(self, value: str) -> bool:
-        pass
 
     def get_create_params(self, backend: "DatabaseBackend", **kwargs) -> str:
         return backend.get_create_params_for_date_field(field=self, **kwargs)

@@ -10,6 +10,8 @@ if TYPE_CHECKING:
 
 class PostgreSQLBackend(DatabaseBackend):
 
+    __name__: str = "PostgreSQLBackend"
+
     SQL_TYPE_MAPPING: Dict[FieldType, Any] = {
             "CharField": lambda length: f"VARCHAR({length})",
             "IntegerField": "INTEGER",
@@ -22,32 +24,31 @@ class PostgreSQLBackend(DatabaseBackend):
     }
 
     def __init__(self):
-        self.connection = None
-        self.cursor = None
+        self.__connection = None
+        self.__cursor = None
         self._compiler = SQLCompiler()
 
     def connect(self, **kwargs):
         print("executando connect no postgres")
         import psycopg2
-        self.connection = psycopg2.connect(**kwargs)
-        self.cursor = self.connection.cursor()
+        self.__connection = psycopg2.connect(**kwargs)
+        self.__cursor = self.__connection.cursor()
 
     def execute_query(self, query: str, params=None, ):
         try:
-            self.cursor.execute(query, params or ())
             print("executando query", query, params)
-            self.connection.commit()  # Commit após a execução da query
+            self.__cursor.execute(query, params or ())
         except Exception as e:
             print("Erro ao executar query", e)
 
-    def fetch_all(self):
-        return self.cursor.fetchall()
+    def select_all(self):
+        return self.__cursor.fetchall()
 
     def close(self):
-        if self.cursor:
-            self.cursor.close()
-        if self.connection:
-            self.connection.close()
+        if self.__cursor:
+            self.__cursor.close()
+        if self.__connection:
+            self.__connection.close()
 
     def add(self, model: "Model", **kwargs) -> None:
         sql, params = self._compiler.insert_sql(backend=self, model=model, **kwargs)
@@ -63,12 +64,13 @@ class PostgreSQLBackend(DatabaseBackend):
         }
     
     def commit(self):
-        if self.connection:
-            self.connection.commit()
+        if self.__connection:
+            self.__connection.commit()
 
     def create_table(self, model: "Model"):
         sql = self._compiler.create_table_sql(backend=self, model=model)
         self.execute_query(sql)
+        self.commit()
         
     def get_sql_type(self, field_type: FieldType, length: int = 255, **kwargs) -> str:
         sql_type = self.SQL_TYPE_MAPPING[field_type]
@@ -116,6 +118,13 @@ class PostgreSQLBackend(DatabaseBackend):
 
     def get_create_params_for_float_field(self, field) -> str:
         return self.get_create_params(field)  # Floats não precisam de formatação especial
+    
+    def get_create_params_for_id_field(self, field):
+        return self.get_create_params(field, default_formatter=lambda val: f"'{val}'")
+
+    def __name__(self):
+        return "PostgreSQLBackend"
+
 
     def __exit__(self):
         self.close()

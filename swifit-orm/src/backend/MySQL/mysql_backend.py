@@ -1,11 +1,18 @@
 from ..database_backend import DatabaseBackend
-from typing import Dict, Any, TYPE_CHECKING
+from typing import Dict, Any, TYPE_CHECKING, Type, TypeVar
 from main.model.fields import FieldType
+from compilers import SQLCompiler
 
+if TYPE_CHECKING:
+    from main.model.base.model_base import Model
 
-
+T = TypeVar("T", bound="Model")
 
 class MySQLBackend(DatabaseBackend):
+
+    _compiler = None
+
+
 
 
     SQL_TYPE_MAPPING: Dict[FieldType, Any] = {
@@ -20,29 +27,67 @@ class MySQLBackend(DatabaseBackend):
 
 
     def __init__(self):
-        self.connection = None
-        self.cursor = None
+        self.__connection = None
+        self.__cursor = None
+        self._compiler = SQLCompiler()
+        
 
     def connect(self, **kwargs):
         import mysql.connector  
-        self.connection = mysql.connector.connect(**kwargs)
-        self.cursor = self.connection.cursor()
+        self.__connection = mysql.connector.connect(**kwargs)
+        self.__cursor = self.__connection.cursor()
 
     def execute_query(self, query: str, params=None):
-        self.cursor.execute(query, params or ())
+        print("executando query:", query, params)	
+        self.__cursor.execute(query, params or ())
+    
+    def select_all(self, model: "Model"):
+        sql, _ = self._compiler.select_all_sql(backend=self, model=model)
+        self.execute_query(sql, None)
+        return self.fetch_all(sql, None)
+        #return self.fetch_all(sql, params)
 
-    def fetch_all(self):
-        return self.cursor.fetchall()
-
-    def close(self):
-        if self.cursor:
-            self.cursor.close()
-        if self.connection:
-            self.connection.close()
+    def fetch_all(self, sql: str, params=None):
+        return self.__cursor.fetchall()
+    
+    def create_table(self, model: "Model"):
+        sql = self._compiler.create_table_sql(backend=self, model=model)
+        self.execute_query(sql)
+        self.commit()
 
     def add(self, model, **kwargs):
-        pass
+        print("executando add no mysql")	
+        sql, params = self._compiler.insert_sql(backend=self, model=model, **kwargs)
+        self.execute_query(sql, params)
     
+    def commit(self):
+        if self.__connection:
+            self.__connection.commit()
+
+
+    def deseriallize(self, rows: list[tuple], model: Type[T]) -> list[T]:
+        """
+        Deserializa os dados retornados do banco de dados para instâncias do modelo.
+        :param rows: Lista de tuplas com os dados retornados do banco de dados.
+        :param model: Classe do modelo correspondente aos dados.
+        :return: Lista de instâncias do modelo.
+        """
+        #column_names = [desc[0] for desc in cursor.description]
+        instances: list[T] = []
+        for row in rows:
+            instance = model.create(**dict(zip(model._fields.keys(), row)))
+            instances.append(instance)
+        return instances
+
+
+
+
+    def close(self):
+        if self.__cursor:
+            self.__cursor.close()
+        if self.__connection:
+            self.__connection.close()
+
 
     def get_default_conection_params() -> Dict[str, int | str]:
         return {
@@ -86,6 +131,10 @@ class MySQLBackend(DatabaseBackend):
                 string_params += f" DEFAULT {default_formatter(field._DEFAULT)}"
             else:
                 string_params += f" DEFAULT {field._DEFAULT}"
+
+        if field._AUTO_INCREMENT:
+            string_params += " AUTO_INCREMENT"
+
         return string_params
 
     def get_create_params_for_bool_field(self, field) -> str:
@@ -103,8 +152,22 @@ class MySQLBackend(DatabaseBackend):
 
     def get_create_params_for_float_field(self, field) -> str:
         return self.get_create_params(field)
+    
+    def get_create_params_for_id_field(self, field):
+        return self.get_create_params(field, default_formatter=lambda val: f"'{val}'")
 
 
+    @property
+    def cursor(self):
+        return self.__cursor
+
+
+    def __name__(self) -> str:
+        return "MySQLBackend"
+
+    def __enter__(self):
+        return self
+    
 
     def __exit__(self):
         self.close()        

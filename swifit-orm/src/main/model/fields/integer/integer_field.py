@@ -24,7 +24,7 @@ class IntegerField(FieldAbstract, Field):
         self._name = name
         self._model = owner
 
-    def validate_value(self, value: str) -> bool:
+    def validate_value(self, value: str, **kwargs) -> bool:
         if isinstance(value, int):
             return True
         raise ValueError(f"Invalid value for field '{self._name}'. Expected an integer.")

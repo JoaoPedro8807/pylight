@@ -1,6 +1,7 @@
 from datetime import datetime
 from ..field_class import Field
 from typing import TYPE_CHECKING
+from main.exceptions import ModelValueError
 
 if TYPE_CHECKING:
     from main.model import Model
@@ -29,8 +30,37 @@ class DateField(Field):
 
         
 
-    def validate_value(self, value: str) -> bool:
-        pass
+    def validate_value(self, value: str, **kwargs) -> bool:
+        """
+        Valida o valor fornecido para o campo de data.
+    
+        Args:
+            value (str): O valor da data a ser validado.
+            backend (DatabaseBackend): O backend que define o formato de data suportado.
+    
+        Returns:
+            bool: True se o valor for válido, caso contrário, levanta uma exceção.
+    
+        Raises:
+            ValueError: Se o valor não estiver no formato esperado.
+        """
+        if not isinstance(value, str):
+            raise ValueError(
+                f"Invalid value type for DateField '{self._name}'. Expected a string."
+            )
+    
+        backend: DatabaseBackend = kwargs.get("backend")
+        # Valida o formato da data com base no backend
+        supported_format = backend.get_supported_date_format()
+        try:
+            datetime.strptime(value, supported_format)
+            return True
+        except ValueError:
+            raise ModelValueError(
+                f"Valor da data inválido '{self._name}'. "
+                f"Formato esperado: {supported_format}, formato recebido: {value}"
+            )
+        
 
     def get_create_params(self, **kwargs) -> str:
         string_params = ""

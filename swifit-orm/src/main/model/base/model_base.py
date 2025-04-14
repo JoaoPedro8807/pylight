@@ -31,15 +31,15 @@ class ModelBase(type):
         attrs['_meta'] = {'db_table': db_table}
 
 
-        attrs['save'] = cls.save
-        attrs['delete'] = cls.delete
-        attrs['objects'] = cls.objects
+        attrs['meta_save'] = cls.save
+        attrs['meta_delete'] = cls.delete
+        attrs['meta_objects'] = cls.objects
 
         # 6. Cria a classe final
         return super().__new__(cls, name, bases, attrs)
 
     @staticmethod
-    def save(self):
+    def save(self, **kwargs):
         """
         Método save() padrão.
         """
@@ -81,56 +81,91 @@ class Model(metaclass=ModelBase):
 
     def __init__(self, **kwargs):
         self._session = kwargs.get('session', None)
-        print("fields: ", self._fields)
 
     def __set_name__(self, owner, name):
         self._instance = owner
         self._name = name
 
-    def validate_data(fields: Dict[str, FieldAbstract], params: Dict[str, str]) -> None:
+    def validate_data(self, **kwargs) -> None:
         """Valida os dados fornecidos para o modelo."""
-        for field_name, field in fields.items():
-            if field._NOT_NULL and field_name not in params:
-                raise ModelValueError(f"Campo '{field_name}' não encontrado nos parâmetros.")
-            
-            value = params[field_name]
-            if not field.validate_value(value):
-                raise ModelValueError(f"Valor inválido para o campo '{field_name}': {value}")
+        fields = self._fields
+        params = {}
 
+        for field_name, field in fields.items():
+            for attr, value in self.__dict__.items():
+                if attr == field_name:
+                    params[field_name] = value
+            self.validate_field(field_name)
+            if field._NOT_NULL and field_name not in params:
+                raise ModelValueError(f"O campo '{field_name}' é obrigatório.")
+            
+            if field._AUTO_INCREMENT and field_name not in params:
+                params[field_name] = None
+            try:
+                value = params[field_name]
+                if not field.validate_value(value, **kwargs):
+                    raise ModelValueError(f"Valor inválido para o campo '{field_name}': {value}")
+            except KeyError:
+                raise ModelValueError(f"O campo '{field_name}' é obrigatório.")
+            
     @classmethod    
     def validate_field(cls, field_name: str) -> None:
         if field_name not in cls._fields.keys():
             raise ModelValueError(f"Campo '{field_name}' não é válido para o modelo '{cls.__name__}'.")
         
-    @classmethod
-    def validate_all(cls, **kwargs) -> None:
-        for field_name, value in kwargs.items():
-            cls.validate_field(field_name)
-        cls.validate_data(fields=cls._fields, params=kwargs)
+    
+    def validate_all(self, **kwargs) -> None:
+        self.validate_data(**kwargs)
 
 
     @classmethod
-    def create(cls, session: Session, **kwargs) -> 'Model':
+    def create(cls, **kwargs) -> 'Model':
         """
         Cria um novo objeto no banco de dados com base nos campos definidos no modelo.
         """
-        cls.validate_all(**kwargs)
-
-        backend = session.engine.backend
-        backend.add(cls, **kwargs)
+        #cls.validate_all(**kwargs)
 
         # Retorna uma instância do modelo
-        instance = cls(session=session, **kwargs)
-        for field_name, value in kwargs.items():
+        instance = cls(**kwargs)
+        for field_name, value in kwargs.items():    
             setattr(instance, field_name, value)
+
         return instance
     
-    def save(self):
-        if not self._session:
-            raise ValueError("O objeto precisa estar vinculado a uma sessão para ser salvo.")
+    # def add(self, session: Session = None, commit: bool = True, **kwargs) -> None:
+    #     self._session = session or self._session
+
+    #     if not self._session:
+    #         raise ModelValueError("O objeto precisa estar vinculado a uma sessão para ser salvo.")
         
-        self._session.commit()
-        print(f"Salvando {self} na tabela {self._meta['db_table']}")
+    #     backend = session.engine.backend
+    #     self.validate_all(backend=backend)
+    #     backend.add(self, **kwargs)
+        
+    #     if commit:
+    #         self._session.commit()
+            
+    #     print(f"Salvando {self} na tabela {self._meta['db_table']}")
+
+    # def save(self):
+    #     if not self._session:
+    #         raise ModelValueError("O objeto precisa estar vinculado a uma sessão para ser salvo.")
+        
+    #     return self._session.engine.backend.commit
+        
+
+    def get_field_values(self) -> dict:
+        """
+        Retorna um dicionário contendo os atributos do modelo que são instâncias de Field.
+
+        Returns:
+            dict: Um dicionário com os nomes dos campos como chaves e os valores como valores.
+        """
+        return {
+            field_name: getattr(self, field_name)
+            for field_name, field in self._fields.items()
+            if isinstance(field, Field) and not field._AUTO_INCREMENT
+        }
 
 
     def __exit__(self, type, value, traceback):

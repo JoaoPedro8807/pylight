@@ -46,7 +46,6 @@ class SwifitORM:
                 "database": database,
                 "user": user,
                 "password": password,
-                "database_file": db_file
             }
         )
 
@@ -60,21 +59,22 @@ class SwifitORM:
     def commit(self) -> None:
         return self.backend.commit()
 
-    def fetch_all(self) -> None:
-        return self.backend.fetch_all()
+    def select_all(self, model: Model) -> None:
+        return self.backend.select_all(model=model)
 
     def close(self) -> None:
         return self.backend.close() 
     
     def create_table(self, model: Model) -> None:
+        #verificar validação do model
         return self.backend.create_table(model)
     
 
     def insert(self, model: Model, **kwargs) -> None:
-        sql = self.backend._compiler.insert_sql(backend=self, model=model, **kwargs)
-        self.execute_query(sql)
+        model.validate_all(backend=self.backend)
+        return self.backend.add(model, **kwargs)
 
-    def __exit__(self) -> None:
+    def __exit__(self) -> None: 
         self.backend.__exit__()
 
 

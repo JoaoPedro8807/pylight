@@ -36,6 +36,7 @@ class Field:
         self._UNIQUE = unique
         self._DEFAULT = default or None
         self._OPTIONS = kwargs
+        self._AUTO_INCREMENT = auto_increment
     
 
 

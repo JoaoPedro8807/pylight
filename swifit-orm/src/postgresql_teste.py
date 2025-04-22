@@ -2,6 +2,9 @@ from main.main import SwifitORM
 from main.model import Model
 from main.model.fields import CharField, IntegerField, DateField, BooleanField, TimeField, IDField
 from main.session import Session
+from model_teste import Pessoa
+from main.filters import Eq, In
+
 def main():
     orm = SwifitORM(
         backend="postgres",
@@ -11,12 +14,6 @@ def main():
         user="postgres",
         password="postgres",
     )
-    class Pessoa(Model):  
-        id = IDField(auto_increment=True)
-        nome = CharField(length=50)
-        numero = IntegerField(not_null=True)
-        data = DateField(not_null=True) # date != datetime != time
-        ativo = BooleanField(not_null=True, default=True)
 
     with Session(orm) as session:
         session.create_table(Pessoa)
@@ -26,7 +23,25 @@ def main():
             ativo=True,
             numero=10
         )   
-        pessoa.save(session=session)
+        session.add(pessoa, commit=True)
+        pessoa.nome = "alterei dnv"
+        
+        session.update(pessoa, commit=True)
+        pessoas = session.select_all(Pessoa)
+        for pessoa in pessoas:
+            print(pessoa.nome)
+
+        pessoas_alteradas = session.find(Pessoa, filters=[
+            Eq({
+            "nome": "alterei dnv",
+            }), In({
+                "id": [30, 32]
+            })
+    ])
+        for pessoa in pessoas_alteradas:
+            print(pessoa.nome, pessoa.id)
+
+
 
 
 if __name__ == "__main__":

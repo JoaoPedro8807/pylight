@@ -2,12 +2,14 @@ from ..database_backend import DatabaseBackend
 from typing import TypedDict
 from compilers import SQLCompiler
 from pathlib import Path
-from typing import Dict, Any, TYPE_CHECKING 
+from typing import Dict, Any, TYPE_CHECKING , TypeVar, Type
 from main.model.fields import FieldType
 
 if TYPE_CHECKING:
     from main.model.fields import FieldType
     from main.model.base.model_base import Model
+
+T = TypeVar("T", bound="Model")
 
 
 class SqliteBackend(DatabaseBackend):
@@ -41,8 +43,20 @@ class SqliteBackend(DatabaseBackend):
         except Exception as e:
             print("Erro ao executar query", e)
 
+    def select(self, model, filters, **kwargs):
+        sql, params = self._compiler.select_sql(backend=self, model=model, filters=filters, **kwargs)
+        self.execute_query(sql, params)
+        return self.deseriallize(rows=self.cursor.fetchall(), model=model)
+
     def select_all(self):
         return self.cursor.fetchall()
+    
+    def deseriallize(self, rows: list[tuple], model: Type[T]) -> list[T]:
+        instances: list[T] = []
+        for row in rows:
+            instance = model.create(**dict(zip(model._fields.keys(), row)))
+            instances.append(instance)
+        return instances
     
     def close(self):
         if self.cursor:
@@ -54,6 +68,16 @@ class SqliteBackend(DatabaseBackend):
     def add(self, model, **kwargs):
         sql, params = self._compiler.insert_sql(backend=self, model=model, **kwargs)
         self.execute_query(sql, params)
+
+    def update(self, model, **kwargs):
+        sql, params = self._compiler.update_sql(backend=self, model=model, **kwargs)
+        self.execute_query(sql, params)
+
+    def delete(self, model, **kwargs):
+        sql, params = self._compiler.delete_sql(backend=self, model=model, **kwargs)
+        self.execute_query(sql, params)
+        self.commit()       
+
 
     def commit(self) -> None:
         if self.connection:
@@ -68,6 +92,7 @@ class SqliteBackend(DatabaseBackend):
         print("criando tabela", model)
         sql = self._compiler.create_table_sql(backend=self, model=model)
         self.execute_query(sql)
+
 
     def get_sql_type(self, field_type: FieldType, **kwargs) -> str:
         return self.SQL_TYPE_MAPPING[field_type]

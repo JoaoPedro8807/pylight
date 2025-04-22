@@ -1,7 +1,8 @@
 from backend import DatabaseBackend
-from typing import Literal, TypedDict
+from typing import Literal, TypedDict, Optional, List
 from backend import SqliteBackend, MySQLBackend, PostgreSQLBackend 
 from .exceptions import SwifitORMException
+from main.filters import BaseFilter
 from .model import Model
 from pathlib import Path
 
@@ -59,6 +60,9 @@ class SwifitORM:
     def commit(self) -> None:
         return self.backend.commit()
 
+    def select(self, model: Model, filters: Optional[List[BaseFilter]], **kwargs) -> Model:
+        return self.backend.select(model=model, filters=filters, **kwargs)
+
     def select_all(self, model: Model) -> None:
         return self.backend.select_all(model=model)
 
@@ -69,11 +73,19 @@ class SwifitORM:
         #verificar validação do model
         return self.backend.create_table(model)
     
+    def update(self, model: Model, **kwargs) -> None:
+        model.validate_all(backend=self.backend)
+        return self.backend.update(model, **kwargs)
 
     def insert(self, model: Model, **kwargs) -> None:
         model.validate_all(backend=self.backend)
         return self.backend.add(model, **kwargs)
+    
+    def delete(self, model: Model, **kwargs) -> None:
+        model.validate_all(backend=self.backend)
+        return self.backend.delete(model, **kwargs)
 
+            
     def __exit__(self) -> None: 
         self.backend.__exit__()
 

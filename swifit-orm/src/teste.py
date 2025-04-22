@@ -25,7 +25,7 @@ def mysql():
         host="localhost",
         port=3306,
         database="dbteste",
-        user="root",
+        user="root",    
         password="root",    
     )
 
@@ -34,26 +34,25 @@ def mysql():
         pessoa = Pessoa.create(
             nome="teste",
             data="2021-10-10",
-            ativo=True,
+            ativo=True, 
             numero=10
         )
         session.add(pessoa, commit=True)
+        pessoa.nome = "alterei dnv"
+        
+        print("CHANGES: ", pessoa.get_changes())
+        session.update(pessoa, commit=True)   
+
+
+        print("ID: ", pessoa.id)
         pessoas = session.select_all(Pessoa)
         for pessoa in pessoas:
-            pessoa.data = "2021-10-11"
-            # ver o mapeamento e detecção de mudanças
-            session.save(pessoa, commit=True)
-            print(pessoa.data)
-            
+            print(pessoa.nome)
 
 
-
-
-        
-
-
-
-    
+        # for pessoa in pessoas:    
+        #     print(pessoa.id)
+   
 
 if __name__ == "__main__":
     #main()

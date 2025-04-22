@@ -1,9 +1,13 @@
 from abc import ABC, abstractmethod
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, List, Optional, TypeVar, Type
 from main.model.fields import FieldType
+from main.filters import BaseFilter
 
 if TYPE_CHECKING:
     from main.model.base.model_base import Model
+
+T = TypeVar("T", bound="Model")
+
 class DatabaseBackend(ABC):
 
     
@@ -19,6 +23,11 @@ class DatabaseBackend(ABC):
     def commit(self) -> None:
         pass
 
+
+    @abstractmethod
+    def select(self, model: "Model", filters: Optional[List[BaseFilter]], **kwargs) -> "Model":
+        pass
+
     @abstractmethod
     def select_all(self):
         pass
@@ -28,7 +37,19 @@ class DatabaseBackend(ABC):
         pass
 
     @abstractmethod
+    def update(self, model: "Model", **kwargs) -> None:
+        pass
+
+    @abstractmethod
+    def delete(self, model: "Model", **kwargs) -> None:
+        pass
+
+    @abstractmethod
     def close(self):
+        pass
+
+    @abstractmethod
+    def deseriallize(self, rows: list[tuple], model: Type[T]) -> list[T]:
         pass
 
     @abstractmethod

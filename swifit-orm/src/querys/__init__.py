@@ -1,2 +1,1 @@
-from .insert_query import *
-from .update_query import *
+from .query_builder import QueryBuilder

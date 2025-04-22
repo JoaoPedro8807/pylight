@@ -1,7 +1,6 @@
 from ..fields import Field, FieldAbstract
 from typing import Dict
 from ...session import Session
-from backend import DatabaseBackend
 from ...exceptions import  ModelValueError
 
 class ModelBase(type):
@@ -76,15 +75,40 @@ class Model(metaclass=ModelBase):
     _session: Session = None
     _instance: 'Model' = None
     _name: str = None
+    _original_state: dict = None
+    id: str = None
+
 
 
 
     def __init__(self, **kwargs):
         self._session = kwargs.get('session', None)
+        self._original_state = self.get_field_values()
 
     def __set_name__(self, owner, name):
         self._instance = owner
         self._name = name
+    def get_changes(self) -> dict:
+        """
+        Retorna os campos que foram alterados desde o último rastreamento.
+
+        Returns:
+            dict: Um dicionário com os campos alterados e seus novos valores.
+        """
+        current_state = self.get_field_values()
+        return {
+            field: value
+            for field, value in current_state.items()
+            if self._original_state.get(field) != value
+        }
+    
+    def update_original_state(self):
+        """
+        Atualiza o estado original para refletir o estado atual.
+        """
+        self._original_state = self.get_field_values()
+
+
 
     def validate_data(self, **kwargs) -> None:
         """Valida os dados fornecidos para o modelo."""
@@ -127,9 +151,13 @@ class Model(metaclass=ModelBase):
 
         # Retorna uma instância do modelo
         instance = cls(**kwargs)
+
         for field_name, value in kwargs.items():    
             setattr(instance, field_name, value)
 
+        # Atualiza o estado original para refletir os valores iniciais
+        instance._original_state = instance.get_field_values()
+        
         return instance
     
     # def add(self, session: Session = None, commit: bool = True, **kwargs) -> None:
@@ -174,6 +202,13 @@ class Model(metaclass=ModelBase):
             self._state.adding = False
         self._session = None
         
+    @property
+    def id(self) -> str:
+        return self.id
+    
+    @id.setter
+    def id(self, value: str) -> None:
+        self.id = value
 
     @property
     def fields(self) -> Dict[str, FieldAbstract]:

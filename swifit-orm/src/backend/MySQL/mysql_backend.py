@@ -44,8 +44,14 @@ class MySQLBackend(DatabaseBackend):
     def select_all(self, model: "Model"):
         sql, _ = self._compiler.select_all_sql(backend=self, model=model)
         self.execute_query(sql, None)
-        return self.fetch_all(sql, None)
-        #return self.fetch_all(sql, params)
+        rows = self.fetch_all(sql, None)
+        return self.deseriallize(rows, model)
+    
+    def select(self, model, filters, **kwargs):
+        sql, params = self._compiler.select_sql(backend=self, model=model, filters=filters, **kwargs)
+        self.execute_query(sql, params)
+        rows = self.fetch_all(sql, params)
+        return self.deseriallize(rows, model)
 
     def fetch_all(self, sql: str, params=None):
         return self.__cursor.fetchall()
@@ -59,13 +65,29 @@ class MySQLBackend(DatabaseBackend):
         print("executando add no mysql")	
         sql, params = self._compiler.insert_sql(backend=self, model=model, **kwargs)
         self.execute_query(sql, params)
+        id = self.get_id()
+        model.id = id   
+
+    def delete(self, model, **kwargs):
+        sql, params = self._compiler.delete_sql(backend=self, model=model, **kwargs)
+        self.execute_query(sql, params)
+        self.commit()
+
+    def get_id(self):
+        return self.__cursor.lastrowid
+
+    def update(self, model, **kwargs):
+        print("executando update no mysql")	
+        sql, params = self._compiler.update_sql(backend=self, model=model, **kwargs)
+        self.execute_query(sql, params)
+        self.commit()
     
     def commit(self):
         if self.__connection:
             self.__connection.commit()
 
 
-    def deseriallize(self, rows: list[tuple], model: Type[T]) -> list[T]:
+    def deseriallize(self, rows: list[tuple], model: "Model") -> list["Model"]:
         """
         Deserializa os dados retornados do banco de dados para instâncias do modelo.
         :param rows: Lista de tuplas com os dados retornados do banco de dados.
@@ -73,10 +95,11 @@ class MySQLBackend(DatabaseBackend):
         :return: Lista de instâncias do modelo.
         """
         #column_names = [desc[0] for desc in cursor.description]
-        instances: list[T] = []
+        instances: list["Model"] = []
         for row in rows:
             instance = model.create(**dict(zip(model._fields.keys(), row)))
             instances.append(instance)
+
         return instances
 
 

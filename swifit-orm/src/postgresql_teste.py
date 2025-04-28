@@ -3,7 +3,7 @@ from main.model import Model
 from main.model.fields import CharField, IntegerField, DateField, BooleanField, TimeField, IDField
 from main.session import Session
 from model_teste import Pessoa
-from main.filters import Eq, In
+from main.filters import Eq, In, Like
 
 def main():
     orm = SwifitORM(
@@ -31,17 +31,25 @@ def main():
         for pessoa in pessoas:
             print(pessoa.nome)
 
-        pessoas_alteradas = session.find(Pessoa, filters=[
-            Eq({
-            "nome": "alterei dnv",
-            }), In({
-                "id": [30, 32]
-            })
-    ])
+        pessoas_alteradas = session.find(Pessoa, nome="alterei dnv", ativo=True)
         for pessoa in pessoas_alteradas:
             print(pessoa.nome, pessoa.id)
 
+        pessoas_alteradas2 = session.find(Pessoa, nome="alterei dnv", ativo=True) # cache 
 
+
+        pessoas_com_filtro = session.find(Pessoa,
+            filters=[
+                In({"id": [1, 2, 3]}),
+                Like({"nome": "teste"})
+                ])
+
+        for pessoa in pessoas_com_filtro:
+            print(pessoa.nome, pessoa.id)
+
+        print("PRINTANDO PESSOAS ALTERADAS 2 ")
+        for pessoa in pessoas_alteradas2:
+            print(pessoa.nome, pessoa.id)
 
 
 if __name__ == "__main__":

@@ -4,13 +4,14 @@ from typing import TYPE_CHECKING, Dict, Any, List, Optional, TypeVar, Type
 from main.filters import BaseFilter
 from main.model.fields import FieldType
 from main.exceptions import SqlCompilerException
+from ..db_base import DbBase
 
 if TYPE_CHECKING:
     from main.model.base.model_base import Model
 
 T = TypeVar("T", bound="Model")
 
-class PostgreSQLBackend(DatabaseBackend):
+class PostgreSQLBackend(DbBase, DatabaseBackend):
 
     __name__: str = "PostgreSQLBackend"
 
@@ -22,13 +23,13 @@ class PostgreSQLBackend(DatabaseBackend):
             "FloatField": "REAL",
             "DateField": "DATE",
             "TimeField": "TIME",
-            #adicionar outros tipos especificos de postgreSQL (fazer check na modelo para ver se o backend suporta)
+            #adicionar outros tipos especificosw de postgreSQL (fazer check na modelo para ver se o backend suporta)
     }
 
     def __init__(self):
+        super().__init__()
         self.__connection = None
         self.__cursor = None
-        self._compiler = SQLCompiler()
 
     def connect(self, **kwargs):
         print("executando connect no postgres")
@@ -43,7 +44,7 @@ class PostgreSQLBackend(DatabaseBackend):
         except Exception as e:
             print("Erro ao executar query", e)
             raise SqlCompilerException(f"Erro ao executar a query: {query} com os parâmetros: {params}") from e
-    
+                                                                                                    
     def fetch_all(self, sql: str, params=None):
         return self.__cursor.fetchall()
     
@@ -70,12 +71,26 @@ class PostgreSQLBackend(DatabaseBackend):
 
     def select(self, model: "Model", filters: Optional[List[BaseFilter]],  **kwargs):
         sql, params = self._compiler.select_sql(backend=self, filters=filters,  model=model, **kwargs)
-        self.execute_query(sql, params)
-        rows = self.fetch_all(sql, params)
-        if not rows:
-            print("Nenhum registro encontrado")
-            return None
-        return self.deseriallize(rows, model)
+        filters_dict = None
+        if filters:
+            filters_sql = list(map(lambda x: x.to_sql(model), filters))
+            filters_dict = {query: params for query, params in filters_sql}
+
+        cache_result = self.cache_manager.get(model_name=model.name, filter_dict=filters_dict)
+        if not cache_result:
+            print("CACHE NÃO ENCONTRADO!")
+            self.execute_query(sql, params)
+            rows = self.fetch_all(sql, params)
+            if not rows:
+                print("Nenhum registro encontrado")
+                return None
+
+            self.cache_manager.set(model_name=model.name, filter_dict=filters_dict, value=rows)    
+        
+            return self.deseriallize(rows, model)
+        
+        print("CACHE ENCONTRADO! ")
+        return self.deseriallize(cache_result, model)
         
     def update(self, model: "Model", **kwargs) -> None:
         sql, params = self._compiler.update_sql(backend=self, model=model, **kwargs)

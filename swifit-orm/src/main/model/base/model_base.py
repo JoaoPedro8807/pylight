@@ -181,7 +181,6 @@ class Model(metaclass=ModelBase):
         
     #     return self._session.engine.backend.commit
         
-
     def get_field_values(self) -> dict:
         """
         Retorna um dicionário contendo os atributos do modelo que são instâncias de Field.
@@ -213,6 +212,11 @@ class Model(metaclass=ModelBase):
     @property
     def fields(self) -> Dict[str, FieldAbstract]:
         return self._fields
+
+
+    @property
+    def name(self) -> str:
+        return self._name
 
     def __str__(self):
         return f"{self.__class__.__name__}"

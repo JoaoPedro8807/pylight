@@ -51,14 +51,10 @@ class QueryBuilder:
 
         if self.filters:
             where_clauses = [f[0] for f in self.filters]
-            print("CLAUSULE DO BUILDER: ", where_clauses)
             sql += f" WHERE {' AND '.join(where_clauses)}"
             for _, p in self.filters:
 
                 params.extend(p)
-            
-
-            print("SQL DO FINAL BUILDER: ", sql, "PARAMS: ", params)    
 
         if self.order_by:
             sql += f" ORDER BY {', '.join(self.order_by)}"

@@ -55,7 +55,6 @@ class SQLCompiler:
         if filters:
             for filter in filters:
                 condition, params = filter.to_sql(model=model)
-                print("ADICIONANDO AOS PARAMS: ",  condition, params)
                 builder.where(condition=condition, params=params)
 
         order_by = kwargs.get("order_by", None)

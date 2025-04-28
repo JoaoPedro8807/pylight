@@ -21,7 +21,6 @@ class In(BaseFilter):
         sql = ""
         for field, values in self.filters.items():
             sql += f"{field} IN ({', '.join(['%s'] * len(values))})"
-        print("LIST DE VALUES: ", self.filters.values(), type(self.filters.values()))
         values = self.filters.values()  
         list_values = next(iter(values))  
         return sql, list_values

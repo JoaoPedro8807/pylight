@@ -1,6 +1,6 @@
 from typing import TYPE_CHECKING, List, Optional, TypeVar, Type
 from main.exceptions import ModelValueError
-from main.filters import BaseFilter
+from main.filters import BaseFilter, Eq
 
 if TYPE_CHECKING:
     from ..main import SwifitORM
@@ -21,7 +21,19 @@ class Session:
         if commit:
             self.commit()
 
-    def find(self, model: Type[T], filters: Optional[List[BaseFilter]] = None,**kwargs) -> T | List[T]:
+    def find(self, model: Type[T], filters: Optional[List[BaseFilter]] = [], **kwargs) -> T | List[T]:
+        model_fields = model._fields
+
+        if not isinstance(filters, list):
+            filters = [filters]
+
+        if kwargs:
+            for key, value in kwargs.items():
+                print("KEY: ", key, "VALUE: ", value)   
+                if key in model_fields:
+                    filters.append(Eq({key: value}))
+
+        print("FILTROS DENTRO DO SESSION.FIND: ", filters)
         instance = self._engine.select(model, filters=filters, **kwargs)
         return instance
 

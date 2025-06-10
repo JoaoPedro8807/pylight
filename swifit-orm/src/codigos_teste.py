@@ -42,8 +42,7 @@ pessoas_filtradas = sessao.find(Pessoa, nome="UsuarioAtualizado", ativo=True)
 from main.filters import In, Like
 
 pessoas_avancadas = sessao.find(
-    Pessoa,
-    filters=[
+    Pessoa, filters=[
         In({"id": [1, 2, 3]}),
         Like({"nome": "Usuario"})
     ]

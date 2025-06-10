@@ -3,7 +3,7 @@ from typing import TYPE_CHECKING
 from .field_class import FieldType
 
 if TYPE_CHECKING:
-    from backend import DatabaseBackend
+    from backend import DatabaseBackend 
 class FieldAbstract(ABC):
     _TYPE: FieldType
 

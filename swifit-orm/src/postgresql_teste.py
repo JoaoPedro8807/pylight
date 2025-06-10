@@ -32,6 +32,10 @@ def main():
             print(pessoa.nome)
 
         pessoas_alteradas = session.find(Pessoa, nome="alterei dnv", ativo=True)
+
+        joao_silva = session.find(
+            Pessoa, nome="joao silva", ativo=True)
+
         for pessoa in pessoas_alteradas:
             print(pessoa.nome, pessoa.id)
 

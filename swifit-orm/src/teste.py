@@ -1,11 +1,11 @@
 from main.session import Session
 from backend import SqliteBackend
-from main.main import SwifitORM
+from main.main import Pylight
 from model_teste import Pessoa
 
 def main():
     sqlite  = SqliteBackend(db_file="testando.db")
-    orm = SwifitORM(backend=sqlite)
+    orm = Pylight(backend=sqlite)
 
     with Session(orm) as session:
         session.create_table(model=Pessoa)
@@ -20,7 +20,7 @@ def main():
         pessoa.save(session=session)
 
 def mysql():
-    orm = SwifitORM(
+    orm = Pylight(
         backend="mysql",
         host="localhost",
         port=3306,

@@ -4,9 +4,9 @@ from backend import SqliteBackend, MySQLBackend, PostgreSQLBackend
 from .exceptions import SwifitORMException
 from main.filters import BaseFilter
 from .model import Model
-from pathlib import Path
+from pathlib import Path    
 
-class SwifitORM:
+class Pylight:
     Backends = Literal["sqlite", "mysql", "postgres"]
     __backend: DatabaseBackend
     __backend_instances ={

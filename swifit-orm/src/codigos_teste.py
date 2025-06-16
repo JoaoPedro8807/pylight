@@ -47,3 +47,20 @@ pessoas_avancadas = sessao.find(
         Like({"nome": "Usuario"})
     ]
 )    
+
+
+
+usuario1 = User(
+    id=1,
+    nome="João",
+    data="2021-10-10",
+    ativo=True,
+)
+
+user = User(1, "João", True)
+user.enviar_email()
+user.alterar_senha("nova_senha")
+user.desativar()
+user.autenticar()
+user.obter_endereco()
+user.notificar("Olá, João!")

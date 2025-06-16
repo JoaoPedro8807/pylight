@@ -1,8 +1,14 @@
 # ORGANIZAÇÃO:
 ### introdução / problemática
-    1 - impedance mismatch / mapeamento
-    2 - como funciona o orm classes/tabelas
-    3 - VANTANGES: centralização das regras e desacoplamento
+    2 - impedance mismatch / mapeamento
+    3 - como funciona o orm classes/tabelas
+    4 - VANTANGES: SQL Injection, exportação p/ outros sgbds relacionais, 
+    5 - Motivação 
+    6 - referencial teórico
+    7 - metodologias: comparação de dificuldades djangoXalchemy, tests de benchmarks  
+    8 - arquitetura
+    9 - cache
+
 
 
 ### referencial 
@@ -35,7 +41,8 @@
 
     1 (motivação).
 
-    Bom, antes de começara a falar sobre o ORM desse artigo, irei falar um pouco sobre a motivação da criação dos ORMs.
+    Bom, antes de começara a falar sobre o ORM desse artigo, irei falar um pouco 
+    sobre o problema que o ORM busca resolver e a motivação da criação desse artigo.
 
     Um dos principais problemas que motivou a criação de ORMs foi o Object-Relational Impedance, um conceito amplamente discutido na literatura da área. Este termo descreve a diferença entre a forma como os dados são tratados em linguagens de programação orientadas a objetos (onde se trabalha com objetos que encapsulam dados e comportamento, representando entidades do mundo real) e a forma como são armazenados em bancos de dados relacionais (que utilizam tabelas, linhas e colunas para organizar os dados).
 

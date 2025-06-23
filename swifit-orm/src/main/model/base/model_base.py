@@ -108,7 +108,14 @@ class Model(metaclass=ModelBase):
         """
         self._original_state = self.get_field_values()
 
-
+    def to_json(self): #APENAS TESTE
+        return {
+            "id": self.id,
+            "nome": self.nome,
+            "numero": self.numero,
+            "data": str(self.data),
+            "ativo": self.ativo
+        }
 
     def validate_data(self, **kwargs) -> None:
         """Valida os dados fornecidos para o modelo."""

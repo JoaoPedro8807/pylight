@@ -134,32 +134,37 @@
 
     e para identificar se uma consulta já foi feita anteriormente, foi implementado a função Hash (ler slide e explicar a imagem)
 
-    10 (sessão)
-    Bom agora vou começar a falar um pouco dos resultados e de como ficou o a implementação do ORM, mostrando como instancialo e alguns exemplos de uso.
-
-
-    11 (Funcionamento do modelo)
+    10 (Funcionamento do modelo)
+    Bom agora vou começar a falar um pouco dos resultados e de como ficou o a implementação do ORM, mostrando como instancia-lo e alguns exemplos de uso.
 
     Bom, na definição de modelos, o procedimento é bem parecido com o apresentado no começo do slide onde o modelo representa um espelho da tabela real do banco.
 
     (ler as imagens do slide)
 
-    Ou seja, o modelo consegue representar sem nenhum problema toda a funcionalidade de uma tabela.
+    Ou seja, o modelo consegue representar sem nenhum problema toda a funcionalidade de uma tabela e também seu comportamentos.
 
+    11 (criação de registros)
 
-    12 (criação de registros)
+    Para a criação de um registro, primeiramente se instancia um novo objeto da  classe modelo, através do método create, onde a gente deve passar todos os valores que seria guardados dentro da tabela.
 
-    Para a criação de um registro, primeiramente se instancia uma variavel da classe modelo (explicar a imagem)
+    Com isso, temos apenas o objeto do modelo dentro dessa variavel nova_pessoa.
 
-    Com isso, temos apenas o objeto do modelo, essa inserção só é realmente efetivada no banco, quando utilizamos o método add da sessão, e nessa linha que de fato o ORM executa a inserção do objeto no banco. 
+    essa inserção só é realmente efetivada no banco, quando utilizamos o método add da sessão, e nessa linha que de fato o ORM executa a inserção do objeto no banco. 
 
     Perceba que o método da sessão também a flag Commit, onde indica se o ORM deve realizar o commit ou não após a operação.
 
 
     Já para alteração de objeto o funcionamento é parecido.
 
-    Perceba que podemos atualizar os atributos do objeto sem necessariamente muda-lo no banco de dados. Assim podemos fazer qualquer verificação e condição antes de de fato executar esse update.
+    Perceba que podemos atualizar os atributos do objeto sem necessariamente muda-lo no banco de dados. 
 
+    Assim sua aplicação consegue fazer uma verificação se essa alteração está de acordo com a regra de negócio, sem antes ter que efetivar esse update dentro do banco.
+
+    Caso a regra de negócio dizer que não está de acordo, sua aplicação consegue retornar um erro pro usuário, sem ter que antes efetivar no banco desnecessariamente.
+
+
+    12 (sessão)
+    
 
 
     16 (benchmark)

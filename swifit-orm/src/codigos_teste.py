@@ -40,8 +40,10 @@ from main.filters import In, Like
 pessoas = sessao.select_all(Pessoa)
 for pessoa in pessoas:
     print(pessoa.nome)
+    
 
-pessoas_filtradas = sessao.find(Pessoa, nome="UsuarioAtualizado", ativo=True)
+
+pessoas_filtradas = sessao.find(Pessoa, nome="UsuarioAtualizado", ativo=True, data=date(2021, 10, 10))
 
 
 pessoas_filtradas = sessao.find(
@@ -50,6 +52,8 @@ pessoas_filtradas = sessao.find(
         Like({"nome": "Usuario"})
     ]
 )    
+
+
 
 
 
